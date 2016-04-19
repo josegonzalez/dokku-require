@@ -34,19 +34,21 @@ require_install_link() {
 require_install_commands() {
   declare desc="runs commands passed in from plugin list"
   declare APP="$1" INDEX="$2"
-  # get each plugin from json
-  local COUNT=0
-  local PLUGIN=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"name\"]" < "$APP_JSON_FILE" 2>&1)
+  local COMMAND COUNT PLUGIN TOTAL
+
+  COUNT=0
+  PLUGIN=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"name\"]" < "$APP_JSON_FILE" 2>&1)
   if [[ -d "$PLUGIN_AVAILABLE_PATH/$PLUGIN/" ]]; then
-    local TOTAL=$(require_get_json_len "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"commands\"]" < "$APP_JSON_FILE" 2>&1)
+    TOTAL=$(require_get_json_len "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"commands\"]" < "$APP_JSON_FILE" 2>&1)
     while [[ "$COUNT" -lt "$TOTAL" ]]; do
       COMMAND=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"commands\"][${COUNT}]" < "$APP_JSON_FILE" 2>&1)
       if [[ $? -ne 0 ]]; then
         break
       fi
 
-      # swap $APP for app name in commands
-      DOKKU_CONFIG_RESTART=false $(sed "s/\$APP/${APP}/g" <<< "dokku $COMMAND") || break
+      COMMAND="${COMMAND//\$APP/$APP}"
+      # shellcheck disable=SC2086
+      DOKKU_CONFIG_RESTART=false dokku $COMMAND || break
       let COUNT=COUNT+1
     done
   else
@@ -57,21 +59,24 @@ require_install_commands() {
 require_add_volumes() {
   declare desc="adds volumes from app.json file"
   declare APP="$1"
-  # get each plugin from json, limit to 20 to prevent silly loop
-  local COUNT=0
-  local TOTAL=$(require_get_json_len "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"]" < "$APP_JSON_FILE" 2>&1)
+  local APPPATH COUNT HOSTPATH TOTAL
+
+  COUNT=0
+  TOTAL=$(require_get_json_len "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"]" < "$APP_JSON_FILE" 2>&1)
   dokku_log_info1 "Setting up $TOTAL volumes from app.json"
   while [[ "$COUNT" -lt "$TOTAL" ]]; do
-    local HOSTPATH=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"][${COUNT}][\"host\"]" < "$APP_JSON_FILE" 2>&1)
-    local APPPATH=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"][${COUNT}][\"app\"]" < "$APP_JSON_FILE" 2>&1)
+    HOSTPATH=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"][${COUNT}][\"host\"]" < "$APP_JSON_FILE" 2>&1)
+    APPPATH=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"][${COUNT}][\"app\"]" < "$APP_JSON_FILE" 2>&1)
 
     if [[ $? -ne 0 ]] || [[ -z "$HOSTPATH" ]] || [[ -z "$APPPATH" ]]; then
       break
     fi
 
     # swap $APP for app name in commands
-    $(sed "s/\$APP/${APP}/g" <<< "dokku docker-options:add $APP deploy,run -v $HOSTPATH:$APPPATH")
-    $(sed "s/\$APP/${APP}/g" <<< "mkdir -p $HOSTPATH")
+    HOSTPATH="${HOSTPATH//\$APP/$APP}"
+    APPPATH="${HOSTPATH//\$APP/$APP}"
+    mkdir -p "$HOSTPATH"
+    dokku docker-options:add "$APP" deploy,run -v "$HOSTPATH:$APPPATH"
     let COUNT=COUNT+1
   done
 }
