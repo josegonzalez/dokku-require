@@ -25,7 +25,7 @@ require_pre_receive_app() {
       break
     fi
 
-    if [[ "$PLUGIN" == *"{"* ]];then
+    if [[ "$PLUGIN" == *"{"* ]]; then
       require_install_commands "$APP" "$COUNTER"
     else
       require_install_link "$APP" "$PLUGIN"
