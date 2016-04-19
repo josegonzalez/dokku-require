@@ -64,13 +64,14 @@ require_add_volumes() {
   while [[ "$COUNT" -lt "$TOTAL" ]]; do
     local HOSTPATH=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"][${COUNT}][\"host\"]" < "$APP_JSON_FILE" 2>&1)
     local APPPATH=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"][${COUNT}][\"app\"]" < "$APP_JSON_FILE" 2>&1)
-    if [[ $? -eq 0 ]] && [[ -n "$HOSTPATH" ]] && [[ -n "$APPPATH" ]]; then
-      # swap $APP for app name in commands
-      $(sed "s/\$APP/${APP}/g" <<< "dokku docker-options:add $APP deploy,run -v $HOSTPATH:$APPPATH")
-      $(sed "s/\$APP/${APP}/g" <<< "mkdir -p $HOSTPATH")
-    else
+
+    if [[ $? -ne 0 ]] || [[ -z "$HOSTPATH" ]] || [[ -z "$APPPATH" ]]; then
       break
     fi
+
+    # swap $APP for app name in commands
+    $(sed "s/\$APP/${APP}/g" <<< "dokku docker-options:add $APP deploy,run -v $HOSTPATH:$APPPATH")
+    $(sed "s/\$APP/${APP}/g" <<< "mkdir -p $HOSTPATH")
     let COUNT=COUNT+1
   done
 }
