@@ -21,7 +21,7 @@ require_install_link() {
   if [[ -d "$PLUGIN_AVAILABLE_PATH/$PLUGIN/" ]]; then
     {
       dokku_log_info1 "Setting up $PLUGIN"
-      dokku "$PLUGIN:create" $APP &&
+      dokku "$PLUGIN:create" "$APP" &&
       DOKKU_CONFIG_RESTART=false dokku "$PLUGIN:link" "$APP" "$APP"
     }||{
       dokku_log_info1 "$PLUGIN already setup"
