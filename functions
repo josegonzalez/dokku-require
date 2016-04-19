@@ -75,10 +75,10 @@ require_add_volumes() {
 
 require_mode_cmd() {
   declare desc="sets DOKKU_REQUIRE_PREFIX"
+  declare MODE="$2"
   local cmd="mode"
   [[ -d $DOKKU_ROOT/.dokkurc ]] || mkdir -p "$DOKKU_ROOT/.dokkurc"
-  [[ -z $2 ]] && dokku_log_fail "Please specify an app to run the command on"
 
-  echo "Setting DOKKU_REQUIRE_PREFIX to $2"
-  echo "export DOKKU_REQUIRE_PREFIX=$2" > "$DOKKU_ROOT/.dokkurc/DOKKU_REQUIRE_PREFIX"
+  echo "Setting DOKKU_REQUIRE_PREFIX to $MODE"
+  echo "export DOKKU_REQUIRE_PREFIX=$MODE" > "$DOKKU_ROOT/.dokkurc/DOKKU_REQUIRE_PREFIX"
 }
