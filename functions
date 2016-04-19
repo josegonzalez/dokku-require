@@ -43,10 +43,10 @@ require_install_commands() {
       COMMAND=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"commands\"][${COUNT}]" < "$APP_JSON_FILE" 2>&1)
       if [[ $? -ne 0 ]]; then
         break
-      else
-        # swap $APP for app name in commands
-        DOKKU_CONFIG_RESTART=false $(sed "s/\$APP/${APP}/g" <<< "dokku $COMMAND") || break
       fi
+
+      # swap $APP for app name in commands
+      DOKKU_CONFIG_RESTART=false $(sed "s/\$APP/${APP}/g" <<< "dokku $COMMAND") || break
       let COUNT=COUNT+1
     done
   else
