@@ -26,14 +26,14 @@ require_pre_receive_app() {
         break
       else
         if [[ "$PLUGIN" == *"{"* ]];then
-          require_install_commands "$COUNTER"
+          require_install_commands "$APP" "$COUNTER"
         else
-          require_install_link "$PLUGIN"
+          require_install_link "$APP" "$PLUGIN"
         fi
       fi
       let COUNTER=COUNTER+1
     done
-    require_add_volumes
+    require_add_volumes "$APP"
   fi
 }
 

@@ -15,7 +15,7 @@ require_get_json_len() {
 
 require_install_link() {
   declare desc="installs and links plugin passed in"
-  local PLUGIN="$1"
+  declare local APP="$1" PLUGIN="$1"
   if [[ -d "$PLUGIN_AVAILABLE_PATH/$PLUGIN/" ]]; then
     {
       dokku_log_info1 "Setting up $PLUGIN"
@@ -31,7 +31,7 @@ require_install_link() {
 
 require_install_commands() {
   declare desc="runs commands passed in from plugin list"
-  local INDEX="$1"
+  declare APP="$1" INDEX="$2"
   # get each plugin from json
   local COUNT=0
   local PLUGIN=$(require_get_app_plugins "[\"$DOKKU_REQUIRE_PREFIX\"][\"plugins\"][${INDEX}][\"name\"]" < "$APP_JSON_FILE" 2>&1)
@@ -54,6 +54,7 @@ require_install_commands() {
 
 require_add_volumes() {
   declare desc="adds volumes from app.json file"
+  declare APP="$1"
   # get each plugin from json, limit to 20 to prevent silly loop
   local COUNT=0
   local TOTAL=$(require_get_json_len "[\"$DOKKU_REQUIRE_PREFIX\"][\"volumes\"]" < "$APP_JSON_FILE" 2>&1)
